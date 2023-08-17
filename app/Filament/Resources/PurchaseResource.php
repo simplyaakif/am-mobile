@@ -104,17 +104,12 @@
 
 
                                      Repeater::make('recoveries')
-                                        ->relationship()
                                          ->columnSpanFull()
-                                         ->hidden(fn(Get $get)=>  $get('customer_id') === null )
                                         ->schema([
                                             Grid::make(2)
                                         ->schema([
 
                                                 TextInput::make('amount')
-                                                    ->live()
-                                                    ->afterStateUpdated(fn (Set $set, Get $get) => $set
-                                                ('customer_id', $get('../../customer_id') ))
                                                 ->required()
                                                 ->integer(),
                                                 DatePicker::make('due_date')
@@ -122,7 +117,6 @@
                                                     ->native(false)
                                                     ->required(),
                                                   ]),
-                                                TextInput::make('customer_id')->hidden()
                                               ]),
 
                                      Placeholder::make('created_at')->label('Created Date')->content(fn(?Purchase $record): string => $record?->created_at?->diffForHumans() ?? '-'),
