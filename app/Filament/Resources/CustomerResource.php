@@ -5,9 +5,13 @@
     use App\Filament\Resources\CustomerResource\Pages;
     use App\Models\Customer;
     use Filament\Forms\Components\Placeholder;
+    use Filament\Forms\Components\Select;
     use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
     use Filament\Forms\Components\TextInput;
     use Filament\Resources\Resource;
+    use Filament\Tables\Actions\DeleteAction;
+    use Filament\Tables\Actions\EditAction;
+    use Filament\Tables\Actions\ViewAction;
     use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
     use Filament\Tables\Table;
     use Filament\Forms\Form;
@@ -27,17 +31,31 @@
             return $form->schema([
                                      TextInput::make('name')->required(),
 
-                                     TextInput::make('whatsapp_mobile')->required(),
+                                     TextInput::make('whatsapp_mobile')
+                                         ->placeholder('e.g +923001805559')
+                                         ->hint('Use Country Code Mobile Numbers Only')
+                                         ->required(),
 
-                                     TextInput::make('mobile'),
 
-                                     TextInput::make('reference'),
+                                     TextInput::make('mobile')
+                                     ->hint('GSM Mobile Number'),
+
+                                     TextInput::make('Comments')
+                                     ->hint('Any other detail/information of use'),
 
                                      TextInput::make('address'),
 
-                                     TextInput::make('occupation_id')->required(),
+                                     Select::make('occupation')
+                                         ->options(Customer::OCCUPATIONS)
+                                         ->required(),
 
-                SpatieMediaLibraryFileUpload::make('dp')->image(),
+                                     TextInput::make('guarantor_whatsapp_mobile')
+                                         ->placeholder('e.g +923001805559')
+                                         ->hint('Optional Mobile Number for Guarantor'),
+
+                SpatieMediaLibraryFileUpload::make('dp')
+                                        ->label('Customer Display Picture')
+                                         ->image(),
 
                                      Placeholder::make('created_at')->label('Created Date')->content(fn(?Customer $record): string => $record?->created_at?->diffForHumans() ?? '-'),
 
@@ -49,15 +67,22 @@
         {
             return $table->columns([
                 SpatieMediaLibraryImageColumn::make('dp'),
+
                                        TextColumn::make('name')->searchable()->sortable(),
 
                                        TextColumn::make('whatsapp_mobile'),
 
                                        TextColumn::make('mobile'),
 
+                                       TextColumn::make('guarantor_whatsapp_mobile'),
 
 
-                                   ]);
+
+                                   ])->actions([
+                                       ViewAction::make(),
+                                       EditAction::make(),
+                                       DeleteAction::make(),
+                                                                      ]);
         }
 
         public static function getPages(): array

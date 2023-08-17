@@ -3,14 +3,23 @@
     namespace App\Filament\Resources;
 
     use App\Filament\Resources\PurchaseResource\Pages;
+    use App\Models\Customer;
     use App\Models\Purchase;
     use Filament\Forms\Components\Checkbox;
+    use Filament\Forms\Components\DatePicker;
+    use Filament\Forms\Components\Grid;
     use Filament\Forms\Components\Placeholder;
+    use Filament\Forms\Components\Repeater;
+    use Filament\Forms\Components\Select;
+    use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
     use Filament\Forms\Components\TextInput;
     use Filament\Forms\Form;
     use Filament\Resources\Resource;
+    use Filament\Tables\Columns\IconColumn;
     use Filament\Tables\Table;
     use Filament\Tables\Columns\TextColumn;
+    use Filament\Forms\Set;
+    use Filament\Forms\Get;
 
     class PurchaseResource extends Resource {
 
@@ -28,19 +37,93 @@
         public static function form(Form $form): Form
         {
             return $form->schema([
-                                     TextInput::make('customer_id')->required()->integer(),
+                                     Select::make('customer_id')
+                                         ->relationship('customer','name')
+                                         ->searchable()
+                                         ->live()
+                                         ->preload()
+                                         ->required()
+                                         ->createOptionForm([
+                                             Grid::make(2)
+                ->schema([
+
+                                                                TextInput::make('name')->required(),
+
+                                                                TextInput::make('whatsapp_mobile')
+                                                                    ->placeholder('e.g +923001805559')
+                                                                    ->hint('Use Country Code Mobile Numbers Only')
+                                                                    ->required(),
+
+
+                                                                TextInput::make('mobile')
+                                                                    ->hint('GSM Mobile Number'),
+
+                                                                TextInput::make('Comments')
+                                                                    ->hint('Any other detail/information of use'),
+
+                                                                TextInput::make('address'),
+
+                                                                Select::make('occupation')
+                                                                    ->options(Customer::OCCUPATIONS)
+                                                                    ->required(),
+
+                                                                TextInput::make('guarantor_whatsapp_mobile')
+                                                                    ->placeholder('e.g +923001805559')
+                                                                    ->hint('Optional Mobile Number for Guarantor'),
+
+                                                                SpatieMediaLibraryFileUpload::make('dp')
+                                                                    ->label('Customer Display Picture')
+                                                                    ->image(),
+                         ])
+                                                            ]),
+
+                                     Select::make('user_id')
+                                         ->relationship('user','name')
+                                         ->label('Sold By')
+                                         ->native(false)
+                                         ->required(),
 
                                      TextInput::make('title')->required(),
 
-                                     TextInput::make('model'),
+                                     TextInput::make('model')->label('Phone Model'),
 
-                                     TextInput::make('imei'),
 
-                                     Checkbox::make('is_pta'),
 
-                                     TextInput::make('user_id')->required()->integer(),
+                                     Grid::make(3)
+                ->schema([
 
-                                     TextInput::make('total_amount')->required(),
+                                     TextInput::make('imei')->label('IMEI'),
+
+                                     TextInput::make('total_amount')
+                                         ->label('Total Amount in PKR')
+                                         ->required(),
+
+                                     Checkbox::make('is_pta')->label('Is PTA Approved'),
+
+                         ]),
+
+
+                                     Repeater::make('recoveries')
+                                        ->relationship()
+                                         ->columnSpanFull()
+                                         ->hidden(fn(Get $get)=>  $get('customer_id') === null )
+                                        ->schema([
+                                            Grid::make(2)
+                                        ->schema([
+
+                                                TextInput::make('amount')
+                                                    ->live()
+                                                    ->afterStateUpdated(fn (Set $set, Get $get) => $set
+                                                ('customer_id', $get('../../customer_id') ))
+                                                ->required()
+                                                ->integer(),
+                                                DatePicker::make('due_date')
+                                                    ->after('yesterday')
+                                                    ->native(false)
+                                                    ->required(),
+                                                  ]),
+                                                TextInput::make('customer_id')->hidden()
+                                              ]),
 
                                      Placeholder::make('created_at')->label('Created Date')->content(fn(?Purchase $record): string => $record?->created_at?->diffForHumans() ?? '-'),
 
@@ -51,7 +134,7 @@
         public static function table(Table $table): Table
         {
             return $table->columns([
-                                       TextColumn::make('customer_id'),
+                                       TextColumn::make('customer.name'),
 
                                        TextColumn::make('title')->searchable()->sortable(),
 
@@ -59,11 +142,14 @@
 
                                        TextColumn::make('imei'),
 
-                                       TextColumn::make('is_pta'),
+                                       IconColumn::make('is_pta')
+                                       ->boolean(),
 
-                                       TextColumn::make('user_id'),
+                                       TextColumn::make('user.name'),
 
                                        TextColumn::make('total_amount'),
+
+
                                    ]);
         }
 

@@ -17,11 +17,28 @@
                 'mobile',
                 'reference',
                 'address',
-                'occupation_id',
+                'occupation',
+                'guarantor_whatsapp_mobile'
             ];
+
+
+        public const OCCUPATIONS = [
+            'student'=>'Student',
+            'doctor'=>'Doctor',
+            'engineer'=>'Engineer',
+            'teacher'=>'Teacher',
+            'gov_officer'=>'Government Job',
+            'businessman'=>'Business Man/Woman',
+
+        ];
 
         public function purchases(): HasMany
         {
             return $this->hasMany(Purchase::class, 'customer_id');
+        }
+
+        public function recoveries(): HasMany
+        {
+            return $this->hasMany(Recovery::class, 'customer_id');
         }
     }
