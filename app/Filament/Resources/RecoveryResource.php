@@ -10,6 +10,7 @@
     use Filament\Forms\Components\TextInput;
     use Filament\Forms\Form;
     use Filament\Resources\Resource;
+    use Filament\Tables\Columns\IconColumn;
     use Filament\Tables\Table;
     use Filament\Tables\Columns\TextColumn;
 
@@ -48,15 +49,17 @@
         public static function table(Table $table): Table
         {
             return $table->columns([
-                                       TextColumn::make('customer_id'),
+                                       TextColumn::make('customer.name'),
 
-                                       TextColumn::make('purchase_id'),
+                                       TextColumn::make('purchase.title'),
+                                       TextColumn::make('purchase.model'),
 
                                        TextColumn::make('amount'),
 
                                        TextColumn::make('due_date')->date(),
 
-                                       TextColumn::make('is_paid'),
+                                       IconColumn::make('is_paid')
+                                       ->boolean(),
 
                                        TextColumn::make('paid_on')->date(),
 
