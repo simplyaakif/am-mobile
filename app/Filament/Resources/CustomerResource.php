@@ -66,7 +66,7 @@
         public static function table(Table $table): Table
         {
             return $table->columns([
-                SpatieMediaLibraryImageColumn::make('dp'),
+                SpatieMediaLibraryImageColumn::make('dp')->circular(),
 
                                        TextColumn::make('name')->searchable()->sortable(),
 
@@ -75,6 +75,7 @@
                                        TextColumn::make('mobile'),
 
                                        TextColumn::make('guarantor_whatsapp_mobile'),
+                                       TextColumn::make('created_at')->date('h:iA d-m-Y')->sortable(),
 
 
 

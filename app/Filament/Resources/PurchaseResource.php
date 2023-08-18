@@ -14,12 +14,13 @@
     use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
     use Filament\Forms\Components\TextInput;
     use Filament\Forms\Form;
+    use Filament\Forms\Get;
     use Filament\Resources\Resource;
+    use Filament\Tables\Actions\ViewAction;
+    use Filament\Tables\Actions\DeleteAction;
     use Filament\Tables\Columns\IconColumn;
     use Filament\Tables\Table;
     use Filament\Tables\Columns\TextColumn;
-    use Filament\Forms\Set;
-    use Filament\Forms\Get;
 
     class PurchaseResource extends Resource {
 
@@ -96,6 +97,7 @@
 
                                      TextInput::make('total_amount')
                                          ->label('Total Amount in PKR')
+                                         ->numeric()
                                          ->required(),
 
                                      Checkbox::make('is_pta')->label('Is PTA Approved'),
@@ -104,11 +106,12 @@
 
 
                                      Repeater::make('recoveries')
+                                         ->relationship('recoveries')
                                          ->columnSpanFull()
                                         ->schema([
                                             Grid::make(2)
                                         ->schema([
-
+                                                TextInput::make('customer_id')->hidden(),
                                                 TextInput::make('amount')
                                                 ->required()
                                                 ->integer(),
@@ -117,7 +120,13 @@
                                                     ->native(false)
                                                     ->required(),
                                                   ]),
-                                              ]),
+                                              ])
+                                         ->mutateRelationshipDataBeforeCreateUsing(function (array $data,Get $get):
+                                         array {
+                                             $data['customer_id'] = $get('customer_id');
+
+                                             return $data;
+                                         }),
 
                                      Placeholder::make('created_at')->label('Created Date')->content(fn(?Purchase $record): string => $record?->created_at?->diffForHumans() ?? '-'),
 
@@ -125,10 +134,12 @@
                                  ]);
         }
 
+
+
         public static function table(Table $table): Table
         {
             return $table->columns([
-                                       TextColumn::make('customer.name'),
+                                       TextColumn::make('customer.name')->searchable()->sortable(),
 
                                        TextColumn::make('title')->searchable()->sortable(),
 
@@ -137,14 +148,20 @@
                                        TextColumn::make('imei'),
 
                                        IconColumn::make('is_pta')
+                                           ->sortable()
                                        ->boolean(),
 
-                                       TextColumn::make('user.name'),
+                                       TextColumn::make('user.name')->label('Sold By'),
 
                                        TextColumn::make('total_amount'),
+                                       TextColumn::make('created_at')->date('h:iA d-m-Y')
+                                           ->sortable(),
 
-
-                                   ]);
+                                   ])
+                ->actions([
+                    ViewAction::make(),
+                    DeleteAction::make(),
+                          ]);
         }
 
         public static function getPages(): array
