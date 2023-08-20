@@ -33,4 +33,9 @@
         {
             return $this->belongsTo(Purchase::class);
         }
+
+        public function account(): BelongsTo
+        {
+            return $this->belongsTo(Account::class);
+        }
     }

@@ -3,14 +3,18 @@
     namespace App\Filament\Resources;
 
     use App\Filament\Resources\RecoveryResource\Pages;
+    use App\Models\Account;
     use App\Models\Recovery;
+    use Filament\Forms\ComponentContainer;
     use Filament\Forms\Components\Checkbox;
     use Filament\Forms\Components\DatePicker;
     use Filament\Forms\Components\Grid;
     use Filament\Forms\Components\Placeholder;
+    use Filament\Forms\Components\Select;
     use Filament\Forms\Components\TextInput;
     use Filament\Forms\Form;
     use Filament\Resources\Resource;
+    use Filament\Tables\Actions\Action;
     use Filament\Tables\Actions\DeleteAction;
     use Filament\Tables\Actions\ViewAction;
     use Filament\Tables\Columns\IconColumn;
@@ -72,12 +76,32 @@
 
                                        TextColumn::make('paid_on')->sortable()->date('d-m-Y'),
 
-                                       TextColumn::make('account_id'),
+                                       TextColumn::make('account.title'),
                                        TextColumn::make('created_at')->sortable()->date('d-m-Y')
                                    ])->actions([
-                                       ViewAction::make(),
+                                       Action::make('Pay Now')
+                                           ->mountUsing(fn (ComponentContainer $form, Recovery $record) => $form->fill([
+                                                   'amount' => $record->amount,
+                                       ]))
+                                       ->form([
+                                           Grid::make(2)
+                                                ->schema([
+                                               TextInput::make('amount')->disabled(),
+                                               Select::make('account')
+                                               ->options(Account::pluck('title','id')),
+                                               DatePicker::make('paid_on')->date('d-m-Y'),
+                                                         ])
+                                                  ])
+                                       ->hidden(fn(Recovery $recovery)=>$recovery->is_paid)
+                                       ->action(function(Recovery $record, array $data) {
+                                           $record->paid_on = $data['paid_on'];
+                                           $record->account_id = $data['account'];
+                                           $record->is_paid = true;
+                                            $record->save();
+                                       }),
                                        DeleteAction::make()
-                                                                  ])
+                                       ->hidden(fn(Recovery $recovery)=>$recovery->is_paid),
+                                      ])
                 ->filters([
 
                     Filter::make('due_date')
